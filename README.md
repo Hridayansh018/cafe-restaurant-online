@@ -293,10 +293,14 @@ npm run dev
 #### 1. Backend Production Deployment
 
 ```bash
-gunicorn main:app \
-  --workers 4 \
-  --worker-class uvicorn.workers.UvicornWorker \
-  --bind 0.0.0.0:8000
+# Standard VPS / Docker
+gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+
+# Render / Railway PaaS (uses dynamic $PORT)
+gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
+
+# Or Uvicorn directly (simple & lightweight for Render)
+uvicorn main:app --host 0.0.0.0 --port $PORT
 ```
 
 #### 2. Nginx Reverse Proxy Configuration (with WebSocket Support)

@@ -86,9 +86,16 @@ This validates authentication, check-in, order lifecycle, SLA breach timers, bil
 
 ## 6. Production Deployment
 
+### Option A: Gunicorn (Multi-Worker)
 ```bash
-gunicorn main:app \
-  --workers 4 \
-  --worker-class uvicorn.workers.UvicornWorker \
-  --bind 0.0.0.0:8000
+# Standard VPS / Docker
+gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+
+# Render / Railway (Dynamic $PORT injected by cloud provider)
+gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
+```
+
+### Option B: Uvicorn Direct (Lightweight / Render)
+```bash
+uvicorn main:app --host 0.0.0.0 --port $PORT
 ```

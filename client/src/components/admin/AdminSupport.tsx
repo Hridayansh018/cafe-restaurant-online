@@ -143,7 +143,7 @@ export const AdminSupport: React.FC = () => {
               </div>
               <div className="p-3 bg-stone-900/40 rounded-xl">
                 <p className="text-[10px] text-stone-500">Items</p>
-                <p className="text-lg font-black text-white">{selected.items.length}</p>
+                <p className="text-lg font-black text-white">{(selected.items || []).length}</p>
               </div>
             </div>
 

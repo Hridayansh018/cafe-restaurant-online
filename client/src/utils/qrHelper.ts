@@ -32,7 +32,7 @@ export async function generateQRCodeDataURL(text: string): Promise<string> {
  * Always uses the current deployment's origin, not localhost hardcoded.
  */
 export function buildDinerURL(tableId: string, qrToken: string): string {
-  return `${window.location.origin}/diner?table=${encodeURIComponent(tableId)}&token=${encodeURIComponent(qrToken)}`;
+  return `${window.location.origin}/menu?table=${encodeURIComponent(tableId)}&token=${encodeURIComponent(qrToken)}`;
 }
 
 /**

@@ -175,9 +175,9 @@ export const KDSView: React.FC = () => {
                               <span className="font-black text-[#FF7A1A] text-sm">{it.quantity}x</span>
                               <span className="font-bold text-stone-100">{it.name_snapshot}</span>
                             </div>
-                            {Object.keys(it.modifiers_selected).length > 0 && (
+                            {Object.keys(it.modifiers_selected || {}).length > 0 && (
                               <p className="text-[11px] text-stone-400 ml-6">
-                                {Object.entries(it.modifiers_selected)
+                                {Object.entries(it.modifiers_selected || {})
                                   .map(([k, v]) => `${k}: ${v}`)
                                   .join(' • ')}
                               </p>
@@ -280,9 +280,9 @@ export const KDSView: React.FC = () => {
                                 {it.name_snapshot}
                               </span>
                             </div>
-                            {Object.keys(it.modifiers_selected).length > 0 && (
+                            {Object.keys(it.modifiers_selected || {}).length > 0 && (
                               <p className="text-[11px] text-stone-400 ml-6">
-                                {Object.entries(it.modifiers_selected)
+                                {Object.entries(it.modifiers_selected || {})
                                   .map(([k, v]) => `${k}: ${v}`)
                                   .join(' • ')}
                               </p>

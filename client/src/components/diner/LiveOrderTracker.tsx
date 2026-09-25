@@ -193,14 +193,14 @@ export const LiveOrderTracker: React.FC<LiveOrderTrackerProps> = ({
 
           {/* Items Summary */}
           <div className="space-y-1.5 bg-[#FFF8F2] p-2.5 rounded-xl border border-[#FFE3CC]">
-            {order.items.map(item => (
+            {(order.items || []).map(item => (
               <div key={item.order_item_id} className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-1.5">
                   <span className="font-bold text-[#FF7A1A]">{item.quantity}x</span>
                   <span className="text-[#1F1B16] font-medium">{item.name_snapshot}</span>
-                  {Object.keys(item.modifiers_selected).length > 0 && (
+                  {Object.keys(item.modifiers_selected || {}).length > 0 && (
                     <span className="text-[10px] text-[#6B6259]">
-                      ({Object.values(item.modifiers_selected).join(', ')})
+                      ({Object.values(item.modifiers_selected || {}).join(', ')})
                     </span>
                   )}
                 </div>

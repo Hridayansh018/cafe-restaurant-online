@@ -217,7 +217,7 @@ export const AdminMenu: React.FC = () => {
                 <p className="text-[11px] text-stone-400 line-clamp-2 mb-3">{item.description}</p>
                 <div className="flex items-center gap-1 text-[10px] text-stone-500 mb-3">
                   <span>{SPICE_LABELS[item.spice_level]}</span>
-                  {item.modifiers.length > 0 && (
+                  {item.modifiers && item.modifiers.length > 0 && (
                     <span className="ml-1 bg-stone-800 px-1.5 py-0.5 rounded">{item.modifiers.length} modifiers</span>
                   )}
                   {item.qty_available !== null && (

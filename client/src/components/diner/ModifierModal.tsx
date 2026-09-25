@@ -16,8 +16,8 @@ export const ModifierModal: React.FC<ModifierModalProps> = ({ item, onClose, onA
   // Default modifier selections
   const [selectedModifiers, setSelectedModifiers] = useState<Record<string, string>>(() => {
     const defaults: Record<string, string> = {};
-    item.modifiers.forEach(mod => {
-      if (mod.options.length > 0) {
+    (item.modifiers || []).forEach(mod => {
+      if (mod.options && mod.options.length > 0) {
         defaults[mod.name] = mod.options[0];
       }
     });
@@ -89,13 +89,13 @@ export const ModifierModal: React.FC<ModifierModalProps> = ({ item, onClose, onA
           <p className="text-xs text-[#6B6259] leading-relaxed">{item.description}</p>
 
           {/* Modifiers List */}
-          {item.modifiers.map(mod => (
+          {(item.modifiers || []).map(mod => (
             <div key={mod.name} className="space-y-2">
               <label className="text-xs font-bold text-[#1F1B16] uppercase tracking-wider">
                 {mod.name}
               </label>
               <div className="flex flex-wrap gap-2">
-                {mod.options.map(opt => {
+                {(mod.options || []).map(opt => {
                   const isSelected = selectedModifiers[mod.name] === opt;
                   return (
                     <button

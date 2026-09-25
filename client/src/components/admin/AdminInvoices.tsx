@@ -375,7 +375,7 @@ export const AdminInvoices: React.FC = () => {
                           <p className="text-white font-medium">{inv.customer_name}</p>
                           <p className="text-stone-500">{inv.customer_phone}</p>
                         </td>
-                        <td className="px-4 py-3 text-stone-400">{inv.items.length} items</td>
+                        <td className="px-4 py-3 text-stone-400">{(inv.items || []).length} items</td>
                         <td className="px-4 py-3 text-stone-300">{formatINR(inv.items_subtotal)}</td>
                         <td className="px-4 py-3 text-stone-400">{formatINR(inv.gst_amount)}</td>
                         <td className="px-4 py-3 text-[#FF7A1A] font-bold">{formatINR(inv.total_paid)}</td>

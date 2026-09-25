@@ -15,7 +15,7 @@ export const AdminFloor: React.FC = () => {
   // Generate real QR when viewing table
   useEffect(() => {
     if (!qrTable) { setQrDataUrl(''); return; }
-    const url = `${window.location.origin}/diner?table=${qrTable.table_id}&token=${qrTable.qr_token}`;
+    const url = `${window.location.origin}/menu?table=${qrTable.table_id}&token=${qrTable.qr_token}`;
     generateQRCodeDataURL(url).then(setQrDataUrl);
   }, [qrTable]);
 
@@ -75,8 +75,8 @@ export const AdminFloor: React.FC = () => {
 
       {/* QR URL note */}
       <div className="p-4 bg-blue-950/30 border border-blue-800/40 rounded-2xl text-xs text-blue-300">
-        <strong>QR Code URL:</strong> Each table QR encodes <code className="bg-blue-900/40 px-1 py-0.5 rounded font-mono">{window.location.origin}/diner?table=[id]&token=[token]</code>. 
-        Scanning the code on a phone opens the diner check-in page directly.
+        <strong>QR Code URL:</strong> Each table QR encodes <code className="bg-blue-900/40 px-1 py-0.5 rounded font-mono">{window.location.origin}/menu?table=[id]&token=[token]</code>. 
+        Scanning the code on a phone opens the menu page directly bound to that table.
       </div>
 
       {/* Tables by zone */}

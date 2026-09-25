@@ -26,11 +26,9 @@ const AppRoutes: React.FC = () => {
         {/* Default: redirect to admin */}
         <Route path="/" element={<Navigate to="/admin" replace />} />
 
-        {/* Public Digital Menu */}
+        {/* Interactive Digital Menu (Table Dine-In + Takeaway Ordering) */}
         <Route path="/menu" element={<MenuPage />} />
-
-        {/* Diner — QR-gated ordering experience */}
-        <Route path="/diner" element={<DinerPage />} />
+        <Route path="/diner" element={<MenuPage />} />
 
         {/* Kitchen Display System */}
         <Route path="/kds" element={<KDSPage />} />

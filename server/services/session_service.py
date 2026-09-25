@@ -27,7 +27,19 @@ async def handle_checkin(
     table_stmt = select(TableModel).where(TableModel.table_id == table_id)
     table_res = await db.execute(table_stmt)
     table = table_res.scalar_one_or_none()
-    if not table:
+    if not table and table_id == "tbl_takeaway":
+        table = TableModel(
+            table_id="tbl_takeaway",
+            restaurant_id=restaurant_id,
+            label="Takeaway",
+            capacity=0,
+            zone="Takeaway",
+            qr_token="tok_takeaway",
+            status="vacant",
+        )
+        db.add(table)
+        await db.flush()
+    elif not table:
         raise ValueError(f"Table {table_id} not found")
 
     guest_entry = {
@@ -36,13 +48,15 @@ async def handle_checkin(
         "joined_at": now_ms,
     }
 
-    # 2. Check for active session on this table
-    session_stmt = select(SessionModel).where(
-        SessionModel.table_id == table_id,
-        SessionModel.status == "active",
-    )
-    session_res = await db.execute(session_stmt)
-    session = session_res.scalar_one_or_none()
+    # 2. Check for active session on this table (takeaway always gets its own fresh session)
+    session = None
+    if table_id != "tbl_takeaway":
+        session_stmt = select(SessionModel).where(
+            SessionModel.table_id == table_id,
+            SessionModel.status == "active",
+        )
+        session_res = await db.execute(session_stmt)
+        session = session_res.scalar_one_or_none()
 
     if session:
         # Join existing session
@@ -92,10 +106,11 @@ async def handle_checkin(
         db.add(session)
         await db.flush()  # To populate session_id
 
-    # 3. Update table
-    table.status = "occupied"
-    table.current_session_id = session.session_id
-    table.updated_at = now
+    # 3. Update table (only physical tables become occupied)
+    if table_id != "tbl_takeaway":
+        table.status = "occupied"
+        table.current_session_id = session.session_id
+        table.updated_at = now
 
     # 4. Upsert customer
     cust_stmt = select(CustomerModel).where(

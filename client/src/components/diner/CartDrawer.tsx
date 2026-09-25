@@ -1,6 +1,6 @@
 import React from 'react';
 import { MenuItem } from '../../types';
-import { X, Plus, Minus, Trash2, Send, Clock, Sparkles } from 'lucide-react';
+import { X, Plus, Minus, Trash2, Send, Clock, Sparkles, User, Phone, ShoppingBag } from 'lucide-react';
 import { formatINR } from '../../utils/qrHelper';
 
 export interface CartItem {
@@ -20,6 +20,12 @@ interface CartDrawerProps {
   onSubmitOrder: () => void;
   roundNumber: number;
   tableLabel: string;
+  orderType?: 'dine_in' | 'takeaway';
+  guestName?: string;
+  setGuestName?: (name: string) => void;
+  guestPhone?: string;
+  setGuestPhone?: (phone: string) => void;
+  isSubmitting?: boolean;
 }
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({
@@ -31,25 +37,37 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onSubmitOrder,
   roundNumber,
   tableLabel,
+  orderType = 'dine_in',
+  guestName = '',
+  setGuestName,
+  guestPhone = '',
+  setGuestPhone,
+  isSubmitting = false,
 }) => {
   if (!isOpen) return null;
 
   const subtotal = cart.reduce((sum, item) => sum + item.item.price * item.quantity, 0);
 
+  const canSubmit = !isSubmitting && (!setGuestName || (guestName.trim().length > 0 && guestPhone.trim().length >= 4));
+
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-200">
+      <div className="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-2xl max-h-[92vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-200">
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-[#F0E4D8] flex items-center justify-between bg-[#FFF8F2]">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-[#FF7A1A] text-white">
-                Round {roundNumber}
+                {orderType === 'takeaway' ? 'Takeaway' : `Round ${roundNumber}`}
               </span>
-              <h3 className="text-base font-bold text-[#1F1B16]">Your Table Cart ({tableLabel})</h3>
+              <h3 className="text-base font-bold text-[#1F1B16]">
+                {orderType === 'takeaway' ? 'Takeaway Order Cart' : `Your Cart (${tableLabel})`}
+              </h3>
             </div>
             <p className="text-[11px] text-[#6B6259] mt-0.5">
-              Review items before firing them to the kitchen.
+              {orderType === 'takeaway'
+                ? 'Review your items and pick up at the counter.'
+                : 'Review items before sending to the kitchen.'}
             </p>
           </div>
           <button
@@ -65,7 +83,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           {cart.length === 0 ? (
             <div className="text-center py-10">
               <p className="text-sm font-medium text-[#6B6259]">Your cart is empty.</p>
-              <p className="text-xs text-[#6B6259] mt-1">Add drinks or starters to begin your meal!</p>
+              <p className="text-xs text-[#6B6259] mt-1">Add items from the menu to get started!</p>
             </div>
           ) : (
             cart.map(ci => (
@@ -91,7 +109,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   </p>
 
                   {/* Modifiers Pill */}
-                  {Object.keys(ci.modifiers).length > 0 && (
+                  {ci.modifiers && Object.keys(ci.modifiers).length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-1">
                       {Object.entries(ci.modifiers).map(([k, v]) => (
                         <span key={k} className="text-[10px] bg-orange-50 text-[#FF7A1A] px-1.5 py-0.5 rounded-md font-medium border border-orange-100">
@@ -140,11 +158,42 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             ))
           )}
 
-          {cart.length > 0 && (
+          {/* Guest Information Input (If not saved yet) */}
+          {cart.length > 0 && setGuestName && setGuestPhone && (
+            <div className="pt-3 space-y-2.5">
+              <p className="text-xs font-bold text-[#1F1B16]">
+                {orderType === 'takeaway' ? 'Pickup Customer Details' : 'Diner Details (for order tracking)'}
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="relative">
+                  <User className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Your Name *"
+                    value={guestName}
+                    onChange={e => setGuestName(e.target.value)}
+                    className="w-full pl-8 pr-3 py-2 bg-stone-50 border border-[#F0E4D8] rounded-xl text-xs text-[#1F1B16] focus:outline-none focus:border-[#FF7A1A]"
+                  />
+                </div>
+                <div className="relative">
+                  <Phone className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="tel"
+                    placeholder="Mobile Number *"
+                    value={guestPhone}
+                    onChange={e => setGuestPhone(e.target.value)}
+                    className="w-full pl-8 pr-3 py-2 bg-stone-50 border border-[#F0E4D8] rounded-xl text-xs text-[#1F1B16] focus:outline-none focus:border-[#FF7A1A]"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {cart.length > 0 && orderType === 'dine_in' && (
             <div className="pt-3 bg-[#FFF8F2] p-3 rounded-xl border border-[#FFE3CC] mt-4 flex items-center gap-2 text-xs text-[#6B6259]">
               <Sparkles className="w-4 h-4 text-[#FF7A1A] shrink-0" />
               <span>
-                <strong>Multi-round dining:</strong> Order beverages or starters now. You can order round 2 (mains/desserts) anytime without waiting!
+                <strong>Multi-round dining:</strong> Order starters now. You can order round 2 (mains/desserts) anytime without waiting!
               </span>
             </div>
           )}
@@ -154,17 +203,29 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         {cart.length > 0 && (
           <div className="p-4 bg-white border-t border-[#F0E4D8] space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-[#6B6259]">Round {roundNumber} Subtotal</span>
+              <span className="text-[#6B6259]">
+                {orderType === 'takeaway' ? 'Total Amount' : `Round ${roundNumber} Subtotal`}
+              </span>
               <span className="font-bold text-[#1F1B16] text-base">{formatINR(subtotal)}</span>
             </div>
 
             <button
               type="button"
+              disabled={!canSubmit}
               onClick={onSubmitOrder}
-              className="w-full py-3 px-4 bg-[#FF7A1A] hover:bg-[#E8690D] active:scale-[0.99] text-white font-semibold text-sm rounded-full shadow-md shadow-orange-500/20 transition-all flex items-center justify-center gap-2"
+              className="w-full py-3 px-4 bg-[#FF7A1A] hover:bg-[#E8690D] active:scale-[0.99] text-white font-semibold text-sm rounded-full shadow-md shadow-orange-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Send className="w-4 h-4" />
-              <span>Fire Order to Kitchen ({formatINR(subtotal)})</span>
+              {orderType === 'takeaway' ? (
+                <>
+                  <ShoppingBag className="w-4 h-4" />
+                  <span>{isSubmitting ? 'Placing Takeaway...' : `Place Takeaway Order (${formatINR(subtotal)})`}</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  <span>{isSubmitting ? 'Sending to Kitchen...' : `Fire Order to Kitchen (${formatINR(subtotal)})`}</span>
+                </>
+              )}
             </button>
           </div>
         )}

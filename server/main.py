@@ -48,12 +48,31 @@ async def lifespan(app: FastAPI):
     await engine.dispose()
 
 
+from starlette.types import ASGIApp, Scope, Receive, Send
+
+
+class NormalizePathMiddleware:
+    """Collapses duplicate slashes in incoming request paths (e.g. //api/tables -> /api/tables)."""
+    def __init__(self, app: ASGIApp):
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] in ("http", "websocket"):
+            path = scope.get("path", "")
+            while "//" in path:
+                path = path.replace("//", "/")
+            scope["path"] = path
+        await self.app(scope, receive, send)
+
+
 app = FastAPI(
     title=settings.APP_NAME,
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+app.add_middleware(NormalizePathMiddleware)
 
 # CORS Middleware
 origins = settings.CORS_ORIGINS

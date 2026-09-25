@@ -44,6 +44,10 @@ async def test_full_flow():
         assert len(tables) >= 6
         t1 = tables[0]
 
+        # Verify double slashes like //api/tables are normalized by middleware
+        res_double = await client.get("http://test//api/tables")
+        assert res_double.status_code == 200
+
         # Reissue QR
         res = await client.post(f"/api/tables/{t1['table_id']}/reissue-qr")
         assert res.status_code == 200

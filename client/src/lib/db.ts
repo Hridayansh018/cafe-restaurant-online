@@ -9,10 +9,12 @@ import type {
   OrderStatus, ItemStatus, PaymentMode, PaymentStatus,
 } from '../types';
 
-const API_BASE = (import.meta.env.VITE_API_URL as string) || '';
+const rawBase = (import.meta.env.VITE_API_URL as string) || '';
+const API_BASE = rawBase.replace(/\/+$/, '');
 
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
-  const url = `${API_BASE}${path}`;
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const url = `${API_BASE}${cleanPath}`;
   const res = await fetch(url, {
     ...options,
     headers: {

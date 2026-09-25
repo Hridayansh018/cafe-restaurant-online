@@ -166,7 +166,7 @@ export const DinePulseProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     let cancelled = false;
     const load = async () => {
       try {
-        const [rst, tbls, cats, items, stf, res, custs, camps, ords, bls, invs] = await Promise.all([
+        const [rst, tbls, cats, items, stf, res, custs, camps, ords, bls, invs] = await Promise.allSettled([
           db.getRestaurant(),
           db.getTables(),
           db.getCategories(),
@@ -180,17 +180,17 @@ export const DinePulseProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           db.getInvoices({ limit: 100 }),
         ]);
         if (cancelled) return;
-        if (rst) setRestaurant(rst);
-        setTables(tbls);
-        setCategories(cats);
-        setMenuItems(items);
-        setStaff(stf);
-        setReservations(res);
-        setCustomers(custs);
-        setCampaigns(camps);
-        setOrders(ords);
-        setBills(bls);
-        setInvoices(invs);
+        if (rst.status === 'fulfilled' && rst.value) setRestaurant(rst.value);
+        if (tbls.status === 'fulfilled' && tbls.value) setTables(tbls.value);
+        if (cats.status === 'fulfilled' && cats.value) setCategories(cats.value);
+        if (items.status === 'fulfilled' && items.value) setMenuItems(items.value);
+        if (stf.status === 'fulfilled' && stf.value) setStaff(stf.value);
+        if (res.status === 'fulfilled' && res.value) setReservations(res.value);
+        if (custs.status === 'fulfilled' && custs.value) setCustomers(custs.value);
+        if (camps.status === 'fulfilled' && camps.value) setCampaigns(camps.value);
+        if (ords.status === 'fulfilled' && ords.value) setOrders(ords.value);
+        if (bls.status === 'fulfilled' && bls.value) setBills(bls.value);
+        if (invs.status === 'fulfilled' && invs.value) setInvoices(invs.value);
       } catch (err) {
         console.error('[DinePulse] Initial load error:', err);
         addToast('Connection Error', 'Could not connect to backend server. Make sure the FastAPI server is running.', 'error');

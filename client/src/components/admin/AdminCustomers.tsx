@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDinePulse } from '../../context/DinePulseContext';
 import { formatINR } from '../../utils/qrHelper';
 import { Users, Download, Search, Filter } from 'lucide-react';
@@ -11,6 +11,10 @@ export const AdminCustomers: React.FC = () => {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<'last_visit' | 'total_spent' | 'visit_count'>('last_visit');
 
+  useEffect(() => {
+    refreshCustomers();
+  }, [refreshCustomers]);
+
   const getRangeCutoff = (r: Range) => {
     if (r === 'all') return 0;
     const days = r === '7d' ? 7 : r === '30d' ? 30 : 90;
@@ -19,24 +23,25 @@ export const AdminCustomers: React.FC = () => {
 
   const cutoff = getRangeCutoff(range);
 
-  const filtered = customers
+  const filtered = (customers || [])
     .filter(c => {
-      const inRange = range === 'all' || (c.last_visit !== null && c.last_visit >= cutoff);
-      const matchSearch = search === '' ||
-        c.name.toLowerCase().includes(search.toLowerCase()) ||
-        c.phone.includes(search) ||
-        c.email.toLowerCase().includes(search.toLowerCase());
+      const inRange = range === 'all' || (c.last_visit !== null && c.last_visit !== undefined && c.last_visit >= cutoff);
+      const q = search.trim().toLowerCase();
+      const matchSearch = q === '' ||
+        (c.name || '').toLowerCase().includes(q) ||
+        (c.phone || '').includes(search) ||
+        (c.email || '').toLowerCase().includes(q);
       return inRange && matchSearch;
     })
     .sort((a, b) => {
-      if (sortBy === 'total_spent') return b.total_spent - a.total_spent;
-      if (sortBy === 'visit_count') return b.visit_count - a.visit_count;
+      if (sortBy === 'total_spent') return (b.total_spent || 0) - (a.total_spent || 0);
+      if (sortBy === 'visit_count') return (b.visit_count || 0) - (a.visit_count || 0);
       return (b.last_visit || 0) - (a.last_visit || 0);
     });
 
-  const totalCustomers = customers.length;
-  const totalSpend = customers.reduce((s, c) => s + c.total_spent, 0);
-  const marketingOptIn = customers.filter(c => c.marketing_opt_in).length;
+  const totalCustomers = (customers || []).length;
+  const totalSpend = (customers || []).reduce((s, c) => s + (c.total_spent || 0), 0);
+  const marketingOptIn = (customers || []).filter(c => Boolean(c.marketing_opt_in)).length;
 
   const formatDate = (ts: number | null) =>
     ts ? new Date(ts).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Never';
@@ -47,8 +52,8 @@ export const AdminCustomers: React.FC = () => {
       c.name,
       c.phone,
       c.email,
-      c.visit_count,
-      c.total_spent.toFixed(2),
+      c.visit_count || 0,
+      (c.total_spent || 0).toFixed(2),
       formatDate(c.last_visit),
       c.marketing_opt_in ? 'Yes' : 'No',
       formatDate(c.created_at),
@@ -156,9 +161,9 @@ export const AdminCustomers: React.FC = () => {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <div className="w-7 h-7 rounded-full bg-stone-800 flex items-center justify-center text-white font-black text-[11px] shrink-0">
-                          {c.name.charAt(0).toUpperCase()}
+                          {(c.name || '?').charAt(0).toUpperCase()}
                         </div>
-                        <span className="text-white font-medium">{c.name}</span>
+                        <span className="text-white font-medium">{c.name || 'Unnamed Guest'}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-stone-300 font-mono">{c.phone}</td>

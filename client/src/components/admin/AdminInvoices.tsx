@@ -95,7 +95,7 @@ export const AdminInvoices: React.FC = () => {
         <table>
           <thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Amt</th></tr></thead>
           <tbody>
-            ${inv.items.map(i => `<tr><td>${i.name}</td><td>${i.quantity}</td><td>₹${i.price}</td><td>₹${i.amount}</td></tr>`).join('')}
+            ${(inv.items || []).map(i => `<tr><td>${i.name}</td><td>${i.quantity}</td><td>₹${i.price}</td><td>₹${i.amount}</td></tr>`).join('')}
           </tbody>
           <tfoot>
             <tr><td colspan="3">Subtotal</td><td>₹${inv.items_subtotal}</td></tr>

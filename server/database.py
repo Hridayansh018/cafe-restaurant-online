@@ -8,10 +8,17 @@ class Base(DeclarativeBase):
     pass
 
 
-# Connect args for SQLite to allow concurrent reads/writes and handle types
+# Connect args: SQLite needs check_same_thread disabled.
+# PostgreSQL via Supabase Transaction Pooler (port 6543 / Supavisor / PgBouncer)
+# requires disabling prepared statement cache because transaction mode does not support them across transactions.
 connect_args = {}
 if "sqlite" in settings.DATABASE_URL:
     connect_args = {"check_same_thread": False}
+else:
+    connect_args = {
+        "statement_cache_size": 0,
+        "prepared_statement_cache_size": 0,
+    }
 
 engine = create_async_engine(
     settings.DATABASE_URL,

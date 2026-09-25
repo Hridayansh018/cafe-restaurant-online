@@ -624,87 +624,26 @@ export const DinePulseProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const settleBill = async (billId: string, paymentMode: PaymentMode, staffId?: string): Promise<Invoice> => {
-    const bill = bills.find(b => b.bill_id === billId);
-    if (!bill) throw new Error('Bill not found');
+    const res = await db.settleBill(billId, paymentMode, staffId);
+    const { bill: updatedBill, invoice: newInvoice } = res;
 
-    const session = await db.getSession(bill.session_id);
-    const sessionOrders = orders.filter(o => o.session_id === bill.session_id && o.status !== 'cancelled');
+    setBills(prev => prev.map(b => b.bill_id === billId ? updatedBill : b));
+    setInvoices(prev => [newInvoice, ...prev.filter(i => i.invoice_id !== newInvoice.invoice_id)]);
 
-    // Build invoice line items
-    const itemMap = new Map<string, { name: string; price: number; quantity: number }>();
-    sessionOrders.forEach(ord => {
-      ord.items.forEach(item => {
-        const curr = itemMap.get(item.name_snapshot);
-        if (curr) { curr.quantity += item.quantity; }
-        else { itemMap.set(item.name_snapshot, { name: item.name_snapshot, price: item.price_snapshot, quantity: item.quantity }); }
-      });
-    });
-
-    const invoiceItems = Array.from(itemMap.values()).map(it => ({
-      name: it.name, price: it.price, quantity: it.quantity, amount: it.price * it.quantity,
-    }));
-
-    const guest = session?.guests?.[0] || { name: 'Guest', phone: '' };
-    const seq = String(Date.now()).slice(-5);
-    const invoiceNumber = `INV/${new Date().getFullYear()}-${new Date().getFullYear() + 1 - 2000}/${seq}`;
-
-    const newInvoice = await db.insertInvoice({
-      bill_id: bill.bill_id,
-      invoice_number: invoiceNumber,
-      gstin: restaurant.gstin,
-      restaurant_name: restaurant.name,
-      restaurant_address: restaurant.address,
-      customer_name: guest.name,
-      customer_phone: guest.phone,
-      customer_email: '',
-      items: invoiceItems,
-      items_subtotal: bill.items_subtotal,
-      discount_amount: bill.discount_amount,
-      gst_rate: bill.gst_rate,
-      gst_amount: bill.gst_amount,
-      reservation_credit: bill.reservation_credit_applied,
-      total_paid: bill.total_payable,
-      payment_mode: paymentMode,
-      issued_at: Date.now(),
-      whatsapp_status: 'pending',
-      email_status: 'pending',
-    });
-    if (!newInvoice) throw new Error('Failed to create invoice');
-
-    // Update bill to paid
-    await db.updateBill(billId, {
-      payment_status: 'paid',
-      payment_mode: paymentMode,
-      settled_at: new Date().toISOString(),
-      settled_by_staff_id: staffId || null,
-    });
-    setBills(prev => prev.map(b =>
-      b.bill_id === billId ? { ...b, payment_status: 'paid', payment_mode: paymentMode, settled_at: Date.now() } : b
-    ));
-    setInvoices(prev => [newInvoice, ...prev]);
-
-    // Close session and reset table
-    if (session) {
-      await db.updateSession(session.session_id, {
-        status: 'closed', closed_at: new Date().toISOString(), close_reason: 'settled',
-      });
+    if (updatedBill.table_id) {
+      setTables(prev => prev.map(t =>
+        t.table_id === updatedBill.table_id
+          ? { ...t, status: 'vacant', current_session_id: null, call_waiter_active: false }
+          : t
+      ));
     }
-    await db.updateTable(bill.table_id, { status: 'vacant', current_session_id: null, call_waiter_active: false });
-    setTables(prev => prev.map(t =>
-      t.table_id === bill.table_id ? { ...t, status: 'vacant', current_session_id: null, call_waiter_active: false } : t
-    ));
     setActiveSession(null);
-
-    // Increment customer stats
-    if (guest.phone) {
-      await db.incrementCustomerStats(guest.phone, bill.total_payable);
-    }
 
     try {
       confetti({ particleCount: 75, spread: 70, origin: { y: 0.6 }, colors: ['#FF7A1A', '#2FAE60', '#FFB020', '#FFFFFF'] });
     } catch { /* safe */ }
 
-    addToast('Payment Settled! 🎉', `Invoice #${invoiceNumber} generated. Pending WhatsApp delivery to ${guest.phone}.`, 'success');
+    addToast('Payment Settled & Invoiced', `Tax Invoice #${newInvoice.invoice_number} generated for ₹${newInvoice.total_paid}.`, 'success');
     return newInvoice;
   };
 

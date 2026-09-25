@@ -382,6 +382,16 @@ export const db = {
     }
   },
 
+  async settleBill(billId: string, paymentMode: PaymentMode, staffId?: string): Promise<{ bill: Bill; invoice: Invoice }> {
+    return api<{ bill: Bill; invoice: Invoice }>(`/api/bills/${billId}/settle`, {
+      method: 'POST',
+      body: JSON.stringify({
+        payment_mode: paymentMode,
+        settled_by_staff_id: staffId || null,
+      }),
+    });
+  },
+
   // ── Invoices ──
   async getInvoices(options?: { from?: Date; to?: Date; phone?: string; limit?: number }): Promise<Invoice[]> {
     try {

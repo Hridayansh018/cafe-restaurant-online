@@ -34,18 +34,16 @@ export const BillingModal: React.FC<BillingModalProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [upiVpa, setUpiVpa] = useState('rahul@okaxis');
 
-  const handlePayAndSettle = (mode: PaymentMode) => {
+  const handlePayAndSettle = async (mode: PaymentMode) => {
     setIsProcessing(true);
-    setTimeout(() => {
-      try {
-        const invoice = settleBill(bill.bill_id, mode);
-        setIsProcessing(false);
-        onInvoiceGenerated(invoice);
-      } catch (err) {
-        console.error(err);
-        setIsProcessing(false);
-      }
-    }, 1200);
+    try {
+      const invoice = await settleBill(bill.bill_id, mode);
+      setIsProcessing(false);
+      onInvoiceGenerated(invoice);
+    } catch (err) {
+      console.error('[BillingModal] Failed to settle bill:', err);
+      setIsProcessing(false);
+    }
   };
 
   const guestName = activeSession?.guests[0]?.name || 'Valued Guest';

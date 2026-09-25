@@ -38,14 +38,14 @@ export const KDSPage: React.FC = () => {
   const recentServed = orders.filter(o => o.status === 'served').slice(0, 5);
 
   const formatElapsed = (timestamp: number) => {
-    const diffSec = Math.floor((currentTime - timestamp) / 1000);
+    const diffSec = Math.max(0, Math.floor((currentTime - (timestamp || currentTime)) / 1000));
     const mins = Math.floor(diffSec / 60);
     const secs = diffSec % 60;
     return `${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
   };
 
   const isBreached = (order: Order) =>
-    (currentTime - order.placed_at) / 60000 > restaurant.sla_prep_minutes;
+    (currentTime - (order.placed_at || currentTime)) / 60000 > (restaurant?.sla_prep_minutes || 15);
 
   const getBgForStatus = (status: string) => {
     if (status === 'placed') return 'border-amber-500/50 bg-amber-950/20';
@@ -70,8 +70,8 @@ export const KDSPage: React.FC = () => {
               {getTableLabel(order.table_id)}
             </div>
             <div>
-              <p className="text-xs font-bold text-white">Round #{order.round_number}</p>
-              <p className="text-[10px] text-stone-400">{order.placed_by.name}</p>
+              <p className="text-xs font-bold text-white">Round #{order.round_number || 1}</p>
+              <p className="text-[10px] text-stone-400">{order.placed_by?.name || 'Guest'}</p>
             </div>
           </div>
           <div className="text-right">
@@ -88,7 +88,7 @@ export const KDSPage: React.FC = () => {
 
         {/* Items */}
         <div className="space-y-2">
-          {order.items.map(item => (
+          {(order.items || []).map(item => (
             <div key={item.order_item_id} className="flex items-start gap-2">
               <button
                 type="button"
@@ -189,7 +189,7 @@ export const KDSPage: React.FC = () => {
                 LIVE
               </span>
             </div>
-            <p className="text-xs text-stone-400">{restaurant.name} — Real-time order queue</p>
+            <p className="text-xs text-stone-400">{restaurant?.name || 'Kitchen'} — Real-time order queue</p>
           </div>
         </div>
 

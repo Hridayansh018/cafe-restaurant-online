@@ -4,12 +4,14 @@ import { DinePulseProvider, useDinePulse } from './context/DinePulseContext';
 import { DinerPage } from './pages/DinerPage';
 import { KDSPage } from './pages/KDSPage';
 import { AdminPage } from './pages/AdminPage';
+import { MenuPage } from './pages/MenuPage';
 import { Toaster } from './components/ui/Toaster';
 
 /**
  * DinePulse Application — Route Structure
  *
  * /diner?table=<id>&token=<qr_token>  — QR-gated diner experience
+ * /menu                                — Public interactive digital menu
  * /kds                                 — Kitchen Display System
  * /admin/*                             — Admin console (PIN protected)
  * /                                    — Redirects to /admin
@@ -23,6 +25,9 @@ const AppRoutes: React.FC = () => {
       <Routes>
         {/* Default: redirect to admin */}
         <Route path="/" element={<Navigate to="/admin" replace />} />
+
+        {/* Public Digital Menu */}
+        <Route path="/menu" element={<MenuPage />} />
 
         {/* Diner — QR-gated ordering experience */}
         <Route path="/diner" element={<DinerPage />} />

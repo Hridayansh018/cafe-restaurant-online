@@ -32,7 +32,6 @@ class OrderModel(Base):
     sla_deadline: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=default_sla)
     sla_breached: Mapped[bool] = mapped_column(Boolean, default=False)
     subtotal: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
     items: Mapped[List["OrderItemModel"]] = relationship("OrderItemModel", back_populates="order", cascade="all, delete-orphan", lazy="selectin")

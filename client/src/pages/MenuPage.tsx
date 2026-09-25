@@ -58,7 +58,7 @@ export const MenuPage: React.FC = () => {
     callWaiter,
     requestBill,
     currentBill,
-    checkIn,
+    checkinDiner,
     isLoading,
   } = useDinePulse();
 
@@ -182,7 +182,8 @@ export const MenuPage: React.FC = () => {
       // Ensure session exists
       let session = activeSession;
       if (!session || session.table_id !== targetTableId || session.status !== 'active') {
-        session = await checkIn(targetTableId, finalName, finalPhone);
+        const res = await checkinDiner(targetTableId, finalName, finalPhone);
+        session = res.session;
       }
 
       await placeOrder(

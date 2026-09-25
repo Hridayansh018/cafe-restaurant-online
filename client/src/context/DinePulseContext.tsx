@@ -417,7 +417,20 @@ export const DinePulseProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // ─── Diner check-in (QR-gated) ────────────────────────────
   const checkinDiner = async (tableId: string, name: string, phone: string) => {
-    const targetTable = tables.find(t => t.table_id === tableId);
+    const targetTable = tables.find(t => t.table_id === tableId) || (tableId === 'tbl_takeaway' ? {
+      table_id: 'tbl_takeaway',
+      restaurant_id: restaurant.restaurant_id || 'rst_default',
+      label: 'Takeaway',
+      capacity: 0,
+      zone: 'Takeaway',
+      qr_token: 'tok_takeaway',
+      qr_issued_at: Date.now(),
+      qr_version: 1,
+      status: 'vacant' as const,
+      current_session_id: null,
+      position: { x: 0, y: 0 },
+      call_waiter_active: false,
+    } : null);
     if (!targetTable) throw new Error('Table not found');
 
     const cleanPhone = phone.trim().replace(/\s+/g, '');
@@ -429,8 +442,8 @@ export const DinePulseProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     let session: Session;
 
-    // Try to join existing session
-    const existingSession = await db.getSessionByTable(tableId);
+    // Try to join existing session (skip for takeaway so every takeaway order is distinct)
+    const existingSession = tableId !== 'tbl_takeaway' ? await db.getSessionByTable(tableId) : null;
     if (existingSession && existingSession.status === 'active') {
       const updatedGuests = [...existingSession.guests, { name, phone, joined_at: Date.now() }];
       await db.updateSession(existingSession.session_id, { guests: updatedGuests });
@@ -450,11 +463,13 @@ export const DinePulseProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       session = newSess;
     }
 
-    // Link table to session
-    await db.updateTable(tableId, { status: 'occupied', current_session_id: session.session_id });
-    setTables(prev => prev.map(t =>
-      t.table_id === tableId ? { ...t, status: 'occupied', current_session_id: session.session_id } : t
-    ));
+    // Link table to session for physical tables
+    if (tableId !== 'tbl_takeaway') {
+      await db.updateTable(tableId, { status: 'occupied', current_session_id: session.session_id });
+      setTables(prev => prev.map(t =>
+        t.table_id === tableId ? { ...t, status: 'occupied', current_session_id: session.session_id } : t
+      ));
+    }
     setActiveSession(session);
 
     // Upsert customer

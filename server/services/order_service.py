@@ -9,7 +9,7 @@ def calculate_sla_deadline(placed_at: datetime, prep_minutes: int = 15) -> datet
 
 
 def check_sla_breach(order: OrderModel) -> bool:
-    if order.status in ("served", "cancelled"):
+    if order.status in ("served", "cancelled") or not order.sla_deadline:
         return False
     now = datetime.now(timezone.utc)
     sla_deadline = order.sla_deadline
